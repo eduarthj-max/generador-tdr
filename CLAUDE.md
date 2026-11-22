@@ -19,6 +19,7 @@ Idioma: toda la interfaz, mensajes y comentarios del código van en **español**
 | `app/page.tsx` | Pantalla principal: formulario, vista previa en streaming, edición, ajustes y descarga. |
 | `app/referencias/page.tsx` | Subida y gestión de referencias. |
 | `proxy.ts` | Contraseña opcional (HTTP Basic) si `APP_PASSWORD` está definida. |
+| `Dockerfile`, `railway.json`, `render.yaml` | Despliegue (salida `standalone`, volumen en `/app/data`, health check en `/api/salud`). |
 
 ## Comandos
 

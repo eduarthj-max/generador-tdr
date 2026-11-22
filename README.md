@@ -30,11 +30,31 @@ npm run dev
 
 6. Abre http://localhost:3000, ve a **Biblioteca de referencias** y sube tus TDR/EETT.
 
-## Despliegue
+## Publicar en internet (Railway — recomendado)
 
-La biblioteca se guarda en disco (`DATA_DIR`), así que usa un hosting con disco persistente
-(Railway, Render con disco, un VPS, etc.) o adapta `lib/referencias.ts` a S3/base de datos.
-Define `ANTHROPIC_API_KEY` y, si la app es pública, `APP_PASSWORD`.
+1. Crea una cuenta en https://railway.com e inicia sesión con tu GitHub.
+2. **New Project → Deploy from GitHub repo →** elige `generador-tdr`. Railway detecta el `Dockerfile` solo.
+3. En el servicio, pestaña **Variables**, agrega:
+   - `ANTHROPIC_API_KEY` = tu clave de platform.claude.com
+   - `APP_PASSWORD` = una contraseña para entrar a la app (obligatoria si es pública)
+4. Clic derecho sobre el servicio → **Attach volume** → *Mount path*: `/app/data`
+   (ahí se guarda la biblioteca de referencias; sin volumen se borra en cada despliegue).
+5. Pestaña **Settings → Networking → Generate Domain**: te da la dirección pública
+   (algo como `generador-tdr-production.up.railway.app`).
+6. Al entrar, el navegador pide usuario y contraseña: el usuario puede ser cualquiera y la
+   contraseña es `APP_PASSWORD`.
+
+Cada vez que se sube un cambio a la rama `main` de GitHub, Railway vuelve a publicar la app solo.
+
+### Alternativa: Render
+
+**New → Blueprint →** elige el repositorio; usa `render.yaml` (plan *Starter* con disco de 1 GB).
+Te pedirá `ANTHROPIC_API_KEY` y `APP_PASSWORD`.
+
+### Otro hosting
+
+Cualquier servicio que ejecute Docker sirve: monta un disco persistente en `/app/data`
+y define las variables de `.env.example`. La ruta `/api/salud` sirve como *health check*.
 
 ## Costos aproximados
 
