@@ -1,0 +1,978 @@
+<title>Generador TDR·EETT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: herramienta de dos columnas (formulario | documento), estilo de oficina técnica del Estado */
+:root {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --fg: #1b2230;
+  --muted: #5d6676;
+  --line: #d9dde4;
+  --accent: #b3261e;      /* rojo institucional */
+  --accent-ink: #ffffff;
+  --accent-soft: #fbecea;
+  --link: #1f4e79;
+  --warn: #fff4d6;
+  --err: #fde6e4;
+  --info: #e8f0f8;
+  --paper: #ffffff;
+  --paper-ink: #1a1a1a;
+  --th: #d9e2f3;
+  --font-ui: "Public Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-doc: Arial, "Liberation Sans", Helvetica, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c; --panel: #1c2027; --fg: #e7e9ee; --muted: #9aa3b2; --line: #2e343e;
+    --accent: #e0574d; --accent-ink: #16090a; --accent-soft: #3a1d1b; --link: #8db8e3;
+    --warn: #3b321a; --err: #45201d; --info: #1c2c3d; --paper: #20252d; --paper-ink: #e7e9ee; --th: #2a3a55;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171c; --panel: #1c2027; --fg: #e7e9ee; --muted: #9aa3b2; --line: #2e343e;
+  --accent: #e0574d; --accent-ink: #16090a; --accent-soft: #3a1d1b; --link: #8db8e3;
+  --warn: #3b321a; --err: #45201d; --info: #1c2c3d; --paper: #20252d; --paper-ink: #e7e9ee; --th: #2a3a55;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui); }
+a { color: var(--link); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 40px; }
+
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; padding-block: 20px 16px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand b { font-size: 20px; font-weight: 800; letter-spacing: .02em; color: var(--accent); }
+.brand span { font-size: 12.5px; color: var(--muted); }
+nav.tabs { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+nav.tabs a { text-decoration: none; color: var(--fg); font-weight: 600; font-size: 14px; padding: 6px 14px; border-radius: 999px; }
+nav.tabs a[aria-current="page"] { background: var(--fg); color: var(--bg); }
+.count { font-variant-numeric: tabular-nums; font-weight: 500; opacity: .75; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; min-width: 0; }
+.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.section + .section { margin-top: 22px; }
+
+label.f { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+label.f .opt { font-weight: 400; color: var(--muted); }
+input[type=text], select, textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: var(--bg); color: var(--fg); }
+textarea { resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+@media (max-width: 520px) { .row2, .row3 { grid-template-columns: 1fr; } }
+
+.types { display: grid; gap: 8px; }
+.type { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+.type input { margin-top: 4px; accent-color: var(--accent); }
+.type b { display: block; font-size: 14px; }
+.type small { color: var(--muted); font-size: 12.5px; }
+.type:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.tag { display: inline-block; font: 600 11px/1 var(--font-mono); padding: 3px 6px; border-radius: 4px; background: var(--info); color: var(--link); margin-right: 6px; vertical-align: 1px; }
+.tag.eett { background: var(--accent-soft); color: var(--accent); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 8px; padding: 10px 16px; font: 600 14px var(--font-ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.btn:hover { filter: brightness(.93); }
+.btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn.sm { padding: 6px 10px; font-size: 13px; }
+.btn.full { width: 100%; }
+
+.reflist { display: flex; flex-direction: column; gap: 2px; max-height: 210px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+.reflist label { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding: 4px; font-size: 13.5px; cursor: pointer; }
+.reflist input { margin-top: 3px; accent-color: var(--accent); }
+.hint { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+
+.docbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.seg { display: flex; gap: 4px; }
+.seg button { border: 1px solid var(--line); background: transparent; color: var(--fg); padding: 6px 12px; border-radius: 6px; cursor: pointer; font: 500 13px var(--font-ui); }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.note { padding: 9px 12px; border-radius: 8px; font-size: 13px; }
+.note.warn { background: var(--warn); }
+.note.err { background: var(--err); }
+.note.info { background: var(--info); }
+.notes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.notes:empty { display: none; }
+
+.paper { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--line); border-radius: 6px; padding: 28px clamp(16px, 4vw, 48px); min-height: 460px; }
+.md { font: 14px/1.6 var(--font-doc); overflow-wrap: anywhere; }
+.md h1 { text-align: center; font-size: 17px; text-transform: uppercase; margin: 0 0 18px; text-wrap: balance; }
+.md h2 { color: inherit; text-transform: none; letter-spacing: 0; font-weight: 700; font-size: 14.5px; margin: 22px 0 8px; padding-bottom: 3px; border-bottom: 1px solid var(--line); }
+.md h3 { font-size: 14px; font-style: italic; margin: 16px 0 6px; }
+.md p, .md li { text-align: justify; }
+.md .tw { overflow-x: auto; margin: 10px 0; }
+.md table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.md th, .md td { border: 1px solid var(--muted); padding: 5px 8px; vertical-align: top; text-align: left; }
+.md th { background: var(--th); }
+.md code { font-family: var(--font-mono); font-size: 12.5px; }
+.editor { width: 100%; min-height: 620px; font: 13px/1.55 var(--font-mono); }
+.empty { color: var(--muted); text-align: center; padding: 70px 16px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.empty strong { color: var(--fg); font-size: 15px; }
+.thinking { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; padding: 8px 0 16px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+.adjust { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.meta { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+
+.libtable-wrap { overflow-x: auto; }
+table.lib { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.lib th, table.lib td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.lib th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+table.lib td.num { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted); }
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop input { display: block; margin: 8px auto 0; max-width: 100%; }
+.uplog { display: flex; flex-direction: column; gap: 6px; }
+.banner { margin-bottom: 16px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <b>TDR · EETT</b>
+      <span>Requerimientos conforme a la Ley N° 32069 y su Reglamento · aplicable a todo el Perú</span>
+    </div>
+    <nav class="tabs" aria-label="Secciones">
+      <a href="#generar" id="tab-generar">Generar</a>
+      <a href="#biblioteca" id="tab-biblioteca">Biblioteca <span class="count" id="libcount"></span></a>
+    </nav>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <!-- ===================== GENERAR ===================== -->
+  <section id="view-generar" class="grid">
+    <form class="panel" id="form" autocomplete="off">
+      <div class="section">
+        <h2>1 · Tipo de documento</h2>
+        <div class="types" id="types"></div>
+      </div>
+
+      <div class="section stack">
+        <h2>2 · Requerimiento</h2>
+        <div>
+          <label class="f" for="nombre">Nombre del requerimiento, servicio u obra *</label>
+          <textarea id="nombre" rows="3" required placeholder="Ej.: Servicio de consultoría para la elaboración del expediente técnico del mejoramiento del servicio de agua potable…"></textarea>
+        </div>
+        <div>
+          <label class="f" for="entidad">Entidad <span class="opt">(opcional)</span></label>
+          <input type="text" id="entidad" placeholder="Ej.: Municipalidad Distrital de …">
+        </div>
+        <div>
+          <label class="f" for="dep">Ubicación <span class="opt">(opcional, adapta clima y contexto)</span></label>
+          <div class="row3">
+            <select id="dep" aria-label="Departamento"><option value="">Departamento</option></select>
+            <input type="text" id="prov" placeholder="Provincia" aria-label="Provincia">
+            <input type="text" id="dist" placeholder="Distrito" aria-label="Distrito">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="f" for="plazo">Plazo <span class="opt">(opcional)</span></label>
+            <input type="text" id="plazo" placeholder="Ej.: 90 días calendario">
+          </div>
+          <div>
+            <label class="f" for="proc">Procedimiento <span class="opt">(opcional)</span></label>
+            <select id="proc">
+              <option value="">No indicado</option>
+              <option>Contratación menor (hasta 8 UIT)</option>
+              <option>Licitación pública</option>
+              <option>Concurso público</option>
+              <option>Adjudicación simplificada / procedimiento abreviado</option>
+              <option>Comparación de precios</option>
+              <option>Contratación directa</option>
+              <option>Acuerdo marco / catálogo electrónico</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="f" for="detalles">Detalles adicionales <span class="opt">(opcional)</span></label>
+          <textarea id="detalles" rows="4" placeholder="Metas, cantidades, componentes, perfil del personal, condiciones especiales…"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>3 · Referencias <span id="reftipo"></span></h2>
+        <div id="refpick"></div>
+      </div>
+
+      <div class="section">
+        <button class="btn full" type="submit" id="go">Generar documento</button>
+        <button class="btn ghost full" type="button" id="stop" hidden>Detener</button>
+      </div>
+    </form>
+
+    <section class="panel" aria-label="Documento">
+      <div class="docbar">
+        <div class="seg" role="group" aria-label="Vista">
+          <button type="button" id="v-prev" aria-pressed="true">Vista previa</button>
+          <button type="button" id="v-edit" aria-pressed="false">Editar texto</button>
+        </div>
+        <div class="actions">
+          <button class="btn ghost sm" type="button" id="copy" disabled>Copiar</button>
+          <button class="btn sm" type="button" id="word" disabled>Descargar Word</button>
+        </div>
+      </div>
+      <div class="notes" id="notes"></div>
+      <div class="paper">
+        <div id="thinking" class="thinking" hidden><span class="dot"></span><span id="thinkmsg">Claude está redactando…</span></div>
+        <div id="preview" class="md"></div>
+        <textarea id="editor" class="editor" hidden aria-label="Texto del documento en Markdown"></textarea>
+        <div id="empty" class="empty">
+          <strong>El documento aparecerá aquí</strong>
+          <span>Escribe el nombre del requerimiento y pulsa «Generar documento».<br>Luego puedes editarlo, pedir ajustes y descargarlo en Word.</span>
+        </div>
+      </div>
+      <div class="adjust" id="adjustbox" hidden>
+        <label class="f" for="ajuste">Pedir ajustes a Claude</label>
+        <textarea id="ajuste" rows="3" placeholder="Ej.: agrega un especialista ambiental al plantel, cambia el plazo a 120 días y detalla más los entregables…"></textarea>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="aplicar" disabled>Aplicar ajustes</button>
+          <button class="btn ghost" type="button" id="continuar" hidden>Continuar donde se cortó</button>
+        </div>
+      </div>
+      <p class="meta">Borrador generado con IA: el área usuaria debe revisarlo y validarlo antes de su aprobación.</p>
+    </section>
+  </section>
+
+  <!-- ===================== BIBLIOTECA ===================== -->
+  <section id="view-biblioteca" class="grid" hidden>
+    <div class="panel stack">
+      <h2>Subir referencias</h2>
+      <div class="drop" id="drop">
+        Arrastra aquí PDF, Word (.docx) o TXT
+        <input type="file" id="files" multiple accept=".pdf,.docx,.txt,.md" aria-label="Elegir archivos">
+      </div>
+      <div>
+        <label class="f" for="u-tipo">Tipo</label>
+        <select id="u-tipo">
+          <option value="TDR">TDR · Términos de referencia</option>
+          <option value="EETT">EETT · Especificaciones técnicas</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="u-ent">Entidad de origen <span class="opt">(opcional)</span></label>
+        <input type="text" id="u-ent" value="Gobierno Regional del Cusco">
+      </div>
+      <div>
+        <label class="f" for="u-notas">Palabras clave <span class="opt">(ayudan a elegir la referencia)</span></label>
+        <input type="text" id="u-notas" placeholder="Ej.: saneamiento, agua potable, expediente técnico">
+      </div>
+      <button class="btn full" type="button" id="upload" disabled>Subir</button>
+      <div class="uplog" id="uplog"></div>
+      <p class="hint">Se guarda solo el texto de cada archivo. El nombre del archivo se usa como título: conviene que sea descriptivo (p. ej. «TDR expediente técnico IE secundaria.pdf»). Los PDF escaneados no tienen texto: pásalos antes por OCR o súbelos en Word.</p>
+    </div>
+    <div class="panel">
+      <h2 id="libtitle">Documentos</h2>
+      <div id="lib"></div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@18.0.2/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.15.3/dist/index.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   BASE NORMATIVA (misma que lib/normativa.ts de la app propia)
+   ===================================================================== */
+const NORMATIVA_GENERAL = `MARCO LEGAL DE CONTRATACIONES PÚBLICAS VIGENTE EN EL PERÚ (aplicar en todo documento):
+- Ley N° 32069, Ley General de Contrataciones Públicas (vigente desde el 22 de abril de 2025). Sustituyó a la Ley N° 30225.
+- Reglamento de la Ley N° 32069, aprobado por Decreto Supremo N° 009-2025-EF, y sus modificatorias (entre ellas D.S. N° 001-2026-EF y D.S. N° 222-2026-EF).
+- Directivas, bases estándar y pronunciamientos del Organismo Especializado para las Contrataciones Públicas Eficientes (OECE), que reemplazó al OSCE.
+- Plataforma: Pladicop / SEACE según corresponda.
+- Principios: legalidad, presunción de veracidad, eficacia y eficiencia, valor por dinero, competencia, transparencia, integridad, sostenibilidad ambiental y social, equidad, publicidad.
+- El requerimiento (especificaciones técnicas, términos de referencia o expediente técnico) lo formula el área usuaria; debe describir objetivamente lo que se requiere, sin hacer referencia a marcas, patentes o tipos de origen específicos (si es indispensable, agregar "o equivalente"), y sin requisitos que restrinjan injustificadamente la competencia.
+- Ley N° 29783, Ley de Seguridad y Salud en el Trabajo, y su reglamento (D.S. N° 005-2012-TR). Norma G.050 Seguridad durante la Construcción (RNE) para obras.
+- Ley N° 27446 (SEIA) y normativa ambiental sectorial cuando el servicio u obra genere impactos.
+- D.L. N° 1440 (Presupuesto) y D.L. N° 1252 / Invierte.pe para inversiones.
+- Ley N° 29973 (personas con discapacidad) cuando corresponda; normas de integridad y antisoborno (ISO 37001 si la entidad la tiene implementada).`;
+
+const TIPOS = {
+  tdr_servicio: {
+    nombre: "TDR — Servicio en general",
+    corto: "Mantenimiento, alquiler, capacitación, asistencia técnica, etc.",
+    ref: "TDR",
+    estructura: `1. DENOMINACIÓN DE LA CONTRATACIÓN
+2. FINALIDAD PÚBLICA (vinculada al objetivo institucional / POI / meta presupuestal)
+3. ANTECEDENTES
+4. OBJETIVOS DE LA CONTRATACIÓN (general y específicos)
+5. ALCANCE Y DESCRIPCIÓN DEL SERVICIO
+   5.1 Actividades a desarrollar (detalladas, medibles)
+   5.2 Procedimiento / metodología
+   5.3 Plan de trabajo (si corresponde)
+   5.4 Recursos y facilidades a ser provistos por la entidad
+   5.5 Reglamentos técnicos, normas metrológicas y/o sanitarias aplicables
+   5.6 Seguros (SCTR u otros, si corresponde)
+   5.7 Prestaciones accesorias (si corresponde)
+6. REQUISITOS DEL PROVEEDOR Y DE SU PERSONAL
+   6.1 Del proveedor (RNP vigente en el capítulo correspondiente, habilitaciones)
+   6.2 Del personal (perfil, formación, experiencia)
+7. LUGAR Y PLAZO DE PRESTACIÓN DEL SERVICIO
+8. RESULTADOS ESPERADOS / ENTREGABLES (contenido, plazo y forma de presentación de cada uno)
+9. OTRAS OBLIGACIONES DEL CONTRATISTA (SST, confidencialidad, propiedad intelectual)
+10. CONFORMIDAD DE LA PRESTACIÓN (órgano que otorga, plazo, observaciones)
+11. FORMA DE PAGO (único o por entregables, documentación para el pago)
+12. PENALIDADES (por mora según el Reglamento y otras penalidades objetivas, razonables y congruentes)
+13. RESPONSABILIDAD POR VICIOS OCULTOS
+14. CLÁUSULA ANTICORRUPCIÓN Y ANTISOBORNO
+15. REQUISITOS DE CALIFICACIÓN (capacidad legal, capacidad técnica y profesional, experiencia del postor) — solo si es procedimiento de selección
+16. ANEXOS`,
+    normas: `- Normas técnicas, sectoriales o municipales que regulen el servicio específico (identificarlas según el objeto).
+- Si el servicio implica trabajo de campo o riesgo: SCTR (Ley N° 26790), EPP, plan de SST.`,
+  },
+  tdr_consultoria_obra: {
+    nombre: "TDR — Consultoría de obra",
+    corto: "Expediente técnico, supervisión de obra, estudios de preinversión.",
+    ref: "TDR",
+    estructura: `1. DENOMINACIÓN DE LA CONTRATACIÓN
+2. FINALIDAD PÚBLICA
+3. ANTECEDENTES (incluir datos del proyecto: CUI, nombre del PI, estado en Invierte.pe — usar marcadores si no se conocen)
+4. OBJETIVOS (general y específicos)
+5. UBICACIÓN Y ÁREA DE INFLUENCIA (departamento, provincia, distrito, altitud, clima, accesos)
+6. ALCANCES Y DESCRIPCIÓN DEL SERVICIO
+   6.1 Actividades y estudios básicos (topografía, estudio de mecánica de suelos, hidrología/hidráulica, canteras y fuentes de agua, instrumento de gestión ambiental, CIRA / evaluación arqueológica, gestión del riesgo de desastres, saneamiento físico-legal, según el tipo de obra)
+   6.2 Contenido del expediente técnico o del servicio de supervisión (memoria descriptiva, especificaciones técnicas, planos, metrados, análisis de costos unitarios, presupuesto, fórmula polinómica, cronogramas, etc.)
+   6.3 Metodología BIM (si la entidad la aplica, conforme al Plan BIM Perú)
+   6.4 Coordinaciones con la entidad y con terceros (EPS, concesionarias, Ministerio de Cultura, ANA, SENACE, etc.)
+7. NORMATIVA TÉCNICA APLICABLE
+8. PLANTEL PROFESIONAL CLAVE (cargo, formación académica, experiencia en la especialidad, participación)
+9. EQUIPAMIENTO ESTRATÉGICO (si corresponde)
+10. PLAZO DE EJECUCIÓN (por etapas / entregables)
+11. ENTREGABLES (contenido, plazo, número de ejemplares, formato digital editable y firmado)
+12. REVISIÓN, OBSERVACIONES Y LEVANTAMIENTO (plazos de la entidad y del consultor)
+13. CONFORMIDAD
+14. FORMA DE PAGO (porcentajes por entregable aprobado)
+15. PENALIDADES (mora y otras penalidades: ausencia de personal clave, incumplimiento de entregables, etc.)
+16. RESPONSABILIDAD DEL CONSULTOR (por la calidad del expediente o de la supervisión; plazo de responsabilidad conforme a la Ley N° 32069)
+17. CONFIDENCIALIDAD Y PROPIEDAD INTELECTUAL
+18. CLÁUSULA ANTICORRUPCIÓN Y ANTISOBORNO
+19. REQUISITOS DE CALIFICACIÓN (capacidad legal, capacidad técnica y profesional, experiencia del postor en la especialidad, definiendo "obras similares")
+20. ANEXOS`,
+    normas: `- Reglamento Nacional de Edificaciones (RNE) y sus normas técnicas aplicables (E.020, E.030 Diseño Sismorresistente, E.050 Suelos y Cimentaciones, E.060 Concreto Armado, OS.010–OS.100 Saneamiento, EM.010 Instalaciones eléctricas, A.010, A.040 Educación, A.050 Salud, A.120 Accesibilidad, G.050 Seguridad, etc.).
+- Manual de Carreteras del MTC (Diseño Geométrico DG-2018, Especificaciones Técnicas Generales EG-2013, Suelos, Geología, Geotecnia y Pavimentos, Hidrología, Hidráulica y Drenaje) para infraestructura vial.
+- Norma Técnica de Metrados para Obras de Edificación y Habilitaciones Urbanas (R.D. N° 073-2010-VIVIENDA/VMCS-DNC).
+- D.L. N° 1252 – Invierte.pe y sus directivas; contenidos mínimos sectoriales (MINEDU, MINSA, MVCS, MIDAGRI, MTC).
+- Normas sectoriales: PRONIED/MINEDU (infraestructura educativa), MINSA (establecimientos de salud), ANA (recursos hídricos), MVCS (saneamiento rural y urbano).
+- Ley N° 28296 (Patrimonio Cultural) y su reglamento — CIRA o PMA cuando corresponda.
+- Instrumentos de gestión ambiental según el sector (SEIA).`,
+  },
+  eett_obra: {
+    nombre: "EETT — Obra (por partidas)",
+    corto: "Especificaciones técnicas de partidas para una obra o componente.",
+    ref: "EETT",
+    estructura: `ESPECIFICACIONES TÉCNICAS
+A. GENERALIDADES
+   A.1 Alcance de las especificaciones
+   A.2 Normas y documentos de referencia (orden de prelación: planos, especificaciones, metrados/presupuesto)
+   A.3 Materiales (calidad, aprobación por la supervisión, almacenamiento)
+   A.4 Equipos y herramientas
+   A.5 Seguridad, salud en el trabajo y medio ambiente
+   A.6 Cuaderno de obra, control de calidad y ensayos
+B. ESPECIFICACIONES POR PARTIDAS
+   Organizar con la itemización estándar aplicable al tipo de obra (p. ej. 01 OBRAS PROVISIONALES, 02 SEGURIDAD Y SALUD, 03 MOVIMIENTO DE TIERRAS, 04 OBRAS DE CONCRETO SIMPLE, 05 OBRAS DE CONCRETO ARMADO, 06 MUROS Y TABIQUES, 07 REVOQUES Y REVESTIMIENTOS, ... para edificaciones; o la itemización del EG-2013 para carreteras; o la de saneamiento).
+   Para CADA partida desarrollar obligatoriamente:
+   - Código y nombre de la partida
+   - Descripción
+   - Materiales (con normas técnicas NTP / ASTM / ACI aplicables)
+   - Equipos y herramientas
+   - Procedimiento constructivo / método de ejecución
+   - Controles de calidad y tolerancias (ensayos, frecuencia, criterios de aceptación)
+   - Unidad de medida (m, m², m³, kg, und, glb, etc.)
+   - Método de medición
+   - Condiciones / forma de pago`,
+    normas: `- Reglamento Nacional de Edificaciones (RNE): E.060 Concreto Armado, E.070 Albañilería, E.050 Suelos, E.030 Sismorresistente, E.090 Estructuras metálicas, IS.010 Instalaciones sanitarias, EM.010 Instalaciones eléctricas, OS.050/OS.070 Redes de agua y alcantarillado, G.050 Seguridad durante la construcción.
+- Norma Técnica de Metrados para Obras de Edificación y Habilitaciones Urbanas (R.D. N° 073-2010-VIVIENDA/VMCS-DNC) para unidades y criterios de medición.
+- Manual de Carreteras: Especificaciones Técnicas Generales para Construcción EG-2013 (MTC) para obras viales.
+- Normas Técnicas Peruanas (NTP) de INACAL para materiales: cemento (NTP 334.009), agregados (NTP 400.037), acero de refuerzo (NTP 341.031), ladrillos (NTP 331.017), agua para concreto (NTP 339.088), tuberías PVC (NTP ISO 1452 / NTP 399.002), etc. Complementar con ASTM / ACI cuando no exista NTP.
+- Considerar condiciones climáticas de la zona (costa, sierra, selva; heladas, friaje, lluvias, altitud) en procedimientos como vaciado y curado de concreto (ACI 306 tiempo frío / ACI 305 tiempo caluroso).`,
+  },
+  eett_bienes: {
+    nombre: "EETT — Bienes",
+    corto: "Adquisición de bienes, materiales o equipos.",
+    ref: "EETT",
+    estructura: `1. DENOMINACIÓN DE LA CONTRATACIÓN
+2. FINALIDAD PÚBLICA
+3. ANTECEDENTES (si corresponde)
+4. OBJETIVOS DE LA CONTRATACIÓN
+5. CARACTERÍSTICAS Y CONDICIONES DE LOS BIENES
+   5.1 Descripción y cantidad (cuadro: ítem, descripción, unidad de medida, cantidad)
+   5.2 Características técnicas (cuadro detallado por bien; sin marcas, o con "o equivalente")
+   5.3 Normas técnicas, reglamentos técnicos, normas metrológicas y/o sanitarias
+   5.4 Acondicionamiento, embalaje y rotulado
+   5.5 Garantía comercial (alcance, periodo, inicio del cómputo)
+   5.6 Prestaciones accesorias (instalación, capacitación, mantenimiento, si corresponde)
+   5.7 Disponibilidad de servicios y repuestos (si corresponde)
+   5.8 Muestras / protocolos de prueba (si corresponde)
+6. LUGAR Y PLAZO DE ENTREGA
+7. REQUISITOS DEL PROVEEDOR (RNP, autorizaciones, registros sanitarios, etc.)
+8. CONFORMIDAD DE LA RECEPCIÓN
+9. FORMA DE PAGO
+10. PENALIDADES
+11. RESPONSABILIDAD POR VICIOS OCULTOS
+12. CLÁUSULA ANTICORRUPCIÓN Y ANTISOBORNO
+13. REQUISITOS DE CALIFICACIÓN (solo si es procedimiento de selección)
+14. ANEXOS`,
+    normas: `- Normas Técnicas Peruanas (NTP) de INACAL aplicables al bien; normas internacionales (ISO, ASTM, IEC) cuando correspondan.
+- Fichas técnicas de Perú Compras y catálogos electrónicos de Acuerdos Marco: verificar si el bien está incluido (si lo está, indicarlo).
+- Reglamentos técnicos sectoriales (DIGESA, DIGEMID, MTC, etc.) según el bien.`,
+  },
+};
+
+const DEPARTAMENTOS = ["Amazonas","Áncash","Apurímac","Arequipa","Ayacucho","Cajamarca","Callao","Cusco","Huancavelica","Huánuco","Ica","Junín","La Libertad","Lambayeque","Lima","Loreto","Madre de Dios","Moquegua","Pasco","Piura","Puno","San Martín","Tacna","Tumbes","Ucayali"];
+
+/* =====================================================================
+   PROMPT (mismo contenido que lib/prompt.ts)
+   ===================================================================== */
+function instrucciones(t) {
+  return `Eres un especialista peruano en contrataciones públicas y en ingeniería, con amplia experiencia formulando requerimientos (términos de referencia y especificaciones técnicas) para entidades del Estado de todos los niveles de gobierno: nacional, regional y local, en costa, sierra y selva.
+
+Tu tarea: redactar un documento de tipo «${t.nombre}» completo, técnico y listo para revisión del área usuaria, a partir del nombre del requerimiento y los datos que te dé el usuario.
+
+${NORMATIVA_GENERAL}
+
+NORMAS ESPECÍFICAS PARA ESTE TIPO DE DOCUMENTO:
+${t.normas}
+
+ESTRUCTURA MÍNIMA OBLIGATORIA (respeta este orden y numeración; puedes agregar subnumerales si el objeto lo requiere):
+${t.estructura}
+
+USO DE LOS DOCUMENTOS DE REFERENCIA:
+- Los documentos de referencia que se adjuntan son ejemplos reales aprobados por alguna entidad (muchos del Gobierno Regional del Cusco). Úsalos para imitar el nivel de detalle, el estilo de redacción técnica y el tipo de contenido que esperan las áreas usuarias y los evaluadores.
+- NO copies datos propios de esa entidad ni de ese proyecto: nombres de la entidad, de funcionarios, códigos (CUI, SIAF, metas), montos, fechas, ubicaciones, números de resolución. El documento debe servir para cualquier entidad del Perú.
+- Si una referencia cita normativa derogada (por ejemplo la Ley N° 30225 o el D.S. N° 344-2018-EF), actualízala a la Ley N° 32069 y su Reglamento.
+- Si una referencia no guarda relación con el requerimiento, úsala solo como guía de formato.
+
+ADAPTACIÓN A TODO EL PERÚ:
+- Si el usuario indica ubicación, adapta el contenido a esa realidad: clima, altitud, temporada de lluvias, heladas o friaje, accesibilidad, disponibilidad de materiales y mano de obra local, idioma (castellano/quechua/aimara/lenguas amazónicas) cuando sea relevante para capacitaciones o atención al público.
+- Si no la indica, redacta de forma general y deja marcadores.
+
+REGLAS DE REDACCIÓN:
+- Escribe en español formal y técnico del Perú, en tercera persona, con verbos en futuro o presente normativo ("El contratista deberá…", "La Entidad otorgará…").
+- Sé específico y medible: cantidades, unidades, frecuencias, tolerancias, ensayos, plazos en días calendario.
+- Requisitos del personal y del postor proporcionales al objeto y que no restrinjan la competencia.
+- Nunca inventes datos que solo la entidad conoce (montos, CUI, metas presupuestales, nombres, números de resolución, cantidades exactas no dadas). Usa marcadores entre corchetes en MAYÚSCULAS, por ejemplo: [NOMBRE DE LA ENTIDAD], [MONTO REFERENCIAL], [CUI], [META PRESUPUESTAL], [ÁREA USUARIA], [CANTIDAD].
+- Cuando cites un artículo específico del Reglamento cuyo número no tengas certeza que corresponda a la versión vigente, cita la norma sin el número de artículo o agrega la nota "[VERIFICAR ARTÍCULO]".
+- La penalidad por mora debe remitirse a la fórmula establecida en el Reglamento de la Ley N° 32069; las otras penalidades deben ser objetivas, razonables, congruentes y con procedimiento de verificación.
+
+FORMATO DE SALIDA:
+- Responde SOLO con el documento, en Markdown, sin comentarios previos ni finales.
+- Empieza con un título "# " con el tipo de documento y la denominación.
+- Usa "## " para los numerales principales y "### " para los subnumerales, con la numeración incluida en el texto del título.
+- Usa tablas Markdown para cuadros (personal, entregables, penalidades, características técnicas, cantidades).
+- Al final agrega una sección "## NOTAS PARA EL ÁREA USUARIA" con la lista de marcadores pendientes de completar y los puntos que deben verificarse.`;
+}
+
+function bloqueReferencias(refs) {
+  if (!refs.length) return "No se adjuntaron documentos de referencia. Redacta usando tu conocimiento de la práctica peruana y la estructura indicada.";
+  return "DOCUMENTOS DE REFERENCIA:\n\n" + refs.map((r, i) =>
+    `<referencia indice="${i + 1}" titulo="${r.titulo.replace(/"/g, "'")}" entidad_origen="${(r.entidad || "no indicada").replace(/"/g, "'")}"${r.recortada ? ' recortada="si"' : ""}>\n${r.texto}\n</referencia>`
+  ).join("\n\n");
+}
+
+function mensajeUsuario(d) {
+  const ubic = [d.dist, d.prov, d.dep].filter(Boolean).join(", ");
+  const l = [
+    "Redacta el documento para el siguiente requerimiento:", "",
+    `- Denominación: ${d.nombre}`,
+    `- Entidad: ${d.entidad || "[NOMBRE DE LA ENTIDAD] (no indicada; usar marcador)"}`,
+    `- Ubicación: ${ubic || "no indicada (redactar de forma general)"}`,
+  ];
+  if (d.plazo) l.push(`- Plazo estimado: ${d.plazo}`);
+  if (d.proc) l.push(`- Tipo de procedimiento / contratación: ${d.proc}`);
+  if (d.detalles) l.push("", "Detalles adicionales del área usuaria:", d.detalles);
+  return l.join("\n");
+}
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+const $ = (id) => document.getElementById(id);
+const enc = new TextEncoder();
+const bytes = (s) => enc.encode(s).length;
+const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const fmt = (n) => n.toLocaleString("es-PE");
+function cutToBytes(s, max) {
+  if (bytes(s) <= max) return s;
+  let lo = 0, hi = s.length;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (bytes(s.slice(0, m)) <= max) lo = m; else hi = m - 1; }
+  return s.slice(0, lo);
+}
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null) n.append(c);
+  return n;
+}
+function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+// Markdown: el HTML crudo se muestra como texto (nunca se interpreta)
+const mk = window.marked;
+mk.use({ gfm: true, renderer: {
+  html({ text }) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); },
+}});
+function renderMd(md) {
+  const html = mk.parse(md, { async: false });
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  tpl.content.querySelectorAll("table").forEach((t) => { const w = document.createElement("div"); w.className = "tw"; t.replaceWith(w); w.append(t); });
+  tpl.content.querySelectorAll("a").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+  return tpl.content;
+}
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+const state = {
+  tipo: lsGet("tipo") in TIPOS ? lsGet("tipo") : "tdr_servicio",
+  refs: [],             // metadatos de la biblioteca
+  elegidas: new Set(),
+  doc: lsGet("borrador") || "",
+  promptBase: "",       // para "continuar"
+  generando: false,
+  ctl: null,
+  truncado: false,
+  vista: "previa",
+};
+let sample = null, db = null, downloads = null, maxPrompt = 262144;
+
+/* =====================================================================
+   NAVEGACIÓN
+   ===================================================================== */
+function route() {
+  const v = location.hash === "#biblioteca" ? "biblioteca" : "generar";
+  $("view-generar").hidden = v !== "generar";
+  $("view-biblioteca").hidden = v !== "biblioteca";
+  $("tab-generar").toggleAttribute("aria-current", v === "generar"); if (v === "generar") $("tab-generar").setAttribute("aria-current", "page");
+  $("tab-biblioteca").toggleAttribute("aria-current", v === "biblioteca"); if (v === "biblioteca") $("tab-biblioteca").setAttribute("aria-current", "page");
+}
+addEventListener("hashchange", route);
+route();
+
+/* =====================================================================
+   FORMULARIO
+   ===================================================================== */
+for (const [id, t] of Object.entries(TIPOS)) {
+  $("types").append(el("label", { class: "type" },
+    el("input", { type: "radio", name: "tipo", value: id, id: "t-" + id, checked: state.tipo === id, onchange: () => { state.tipo = id; lsSet("tipo", id); renderRefPick(); } }),
+    el("span", {}, el("b", {}, t.nombre), el("small", {}, t.corto))));
+}
+for (const d of DEPARTAMENTOS) $("dep").append(el("option", {}, d));
+
+function datos() {
+  return { nombre: $("nombre").value.trim(), entidad: $("entidad").value.trim(), dep: $("dep").value, prov: $("prov").value.trim(), dist: $("dist").value.trim(), plazo: $("plazo").value.trim(), proc: $("proc").value, detalles: $("detalles").value.trim() };
+}
+
+function refsDelTipo() { return state.refs.filter((r) => r.tipo === TIPOS[state.tipo].ref); }
+
+function renderRefPick() {
+  const box = $("refpick"); box.replaceChildren();
+  const tipoRef = TIPOS[state.tipo].ref;
+  $("reftipo").textContent = "(" + tipoRef + ")";
+  if (!db) { box.append(el("p", { class: "hint" }, "La biblioteca no está disponible en esta vista. Se redactará solo con la estructura normativa.")); return; }
+  const lista = refsDelTipo();
+  if (!lista.length) {
+    box.append(el("p", { class: "hint" }, `Aún no hay ${tipoRef} en la biblioteca. `, el("a", { href: "#biblioteca" }, "Sube archivos de referencia"), " para que Claude imite su formato."));
+    return;
+  }
+  const l = el("div", { class: "reflist" });
+  for (const r of lista) {
+    l.append(el("label", {},
+      el("input", { type: "checkbox", id: "r-" + r.id, checked: state.elegidas.has(r.id), onchange: (e) => { e.target.checked ? state.elegidas.add(r.id) : state.elegidas.delete(r.id); } }),
+      el("span", {}, r.titulo, r.entidad ? el("small", { style: "color:var(--muted)" }, " · " + r.entidad) : null)));
+  }
+  box.append(l, el("p", { class: "hint" }, "Si no marcas ninguna, se eligen hasta 3 de las más parecidas al nombre del requerimiento."));
+}
+
+function autoElegir(nombre) {
+  const pal = norm(nombre).split(/\s+/).filter((p) => p.length > 3);
+  return refsDelTipo().map((r) => {
+    const t = norm(`${r.titulo} ${r.notas || ""} ${r.nombreArchivo || ""}`);
+    return { r, p: pal.reduce((s, w) => s + (t.includes(w) ? 1 : 0), 0) };
+  }).sort((a, b) => b.p - a.p).slice(0, 3).map((x) => x.r);
+}
+
+/* =====================================================================
+   DOCUMENTO: vista previa, edición, avisos
+   ===================================================================== */
+function setDoc(md) {
+  state.doc = md;
+  lsSet("borrador", md);
+  const has = !!md.trim();
+  $("empty").hidden = has || state.generando;
+  $("preview").replaceChildren(has ? renderMd(md) : "");
+  if (state.vista === "editar" && !state.generando) $("editor").value = md;
+  $("copy").disabled = !has || state.generando;
+  $("word").disabled = !has || state.generando || !downloads;
+  $("adjustbox").hidden = !has || state.generando || !sample;
+  $("continuar").hidden = !state.truncado || state.generando;
+}
+function setVista(v) {
+  state.vista = v;
+  $("v-prev").setAttribute("aria-pressed", v === "previa");
+  $("v-edit").setAttribute("aria-pressed", v === "editar");
+  $("preview").hidden = v !== "previa";
+  $("editor").hidden = v !== "editar";
+  if (v === "editar") $("editor").value = state.doc;
+}
+$("v-prev").onclick = () => { if (state.vista === "editar") setDoc($("editor").value); setVista("previa"); };
+$("v-edit").onclick = () => { if (!state.generando) setVista("editar"); };
+$("editor").addEventListener("input", (e) => { state.doc = e.target.value; lsSet("borrador", state.doc); });
+
+function nota(tipo, texto) { $("notes").append(el("div", { class: "note " + tipo }, texto)); }
+function limpiarNotas() { $("notes").replaceChildren(); }
+
+const ERRORES = {
+  not_granted: "No se dio permiso para usar Claude en esta página. Vuelve a cargarla y acepta el permiso para generar documentos.",
+  rate_limited: "Llegaste al límite de uso de tu plan de Claude por ahora. Espera un rato y vuelve a intentar.",
+  sampling_disabled: "Tu cuenta no tiene habilitado el uso de Claude desde páginas como esta.",
+  cancelled: "Generación detenida.",
+  prompt_too_large: "El pedido es demasiado largo. Marca menos referencias o acorta los detalles.",
+};
+function mensajeError(e) { return ERRORES[e?.code] || `No se pudo completar el documento (${e?.code || "error"}). Intenta de nuevo.`; }
+
+/* =====================================================================
+   GENERACIÓN CON CLAUDE
+   ===================================================================== */
+async function cargarTextos(refs) {
+  const out = [];
+  for (const r of refs) {
+    try { const s = await db.doc("textos/" + r.id).get(); const t = s.exists ? s.data().texto : ""; if (t) out.push({ ...r, texto: t }); } catch {}
+  }
+  return out;
+}
+
+async function llamar(input, { reemplazar = true, previo = "" } = {}) {
+  state.generando = true; state.truncado = false;
+  state.ctl = new AbortController();
+  $("go").hidden = true; $("stop").hidden = false;
+  $("thinking").hidden = false; $("thinkmsg").textContent = "Claude está analizando las referencias y la normativa… (puede tardar 1–3 minutos)";
+  setVista("previa");
+  if (reemplazar) setDoc(""); else setDoc(previo);
+  let base = reemplazar ? "" : previo;
+  try {
+    const res = await sample(input, {
+      modelTier: "complex", effort: "high", cache: false, signal: state.ctl.signal,
+      onText: ({ text }) => { $("thinkmsg").textContent = "Redactando…"; setDoc(base + text); },
+    });
+    setDoc(base + res.text);
+    if (res.truncated) { state.truncado = true; nota("warn", "El documento se cortó por su longitud. Pulsa «Continuar donde se cortó» para completarlo."); }
+  } catch (e) {
+    if (e?.text) setDoc(base + e.text); else if (!reemplazar) setDoc(previo);
+    if (e?.text && e.code !== "cancelled") state.truncado = true;
+    if (e?.code === "not_granted") { $("go").disabled = true; }
+    nota(e?.code === "cancelled" ? "info" : "err", mensajeError(e));
+  } finally {
+    state.generando = false;
+    $("thinking").hidden = true; $("go").hidden = false; $("stop").hidden = true;
+    setDoc(state.doc);
+  }
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  if (!sample || state.generando) return;
+  const d = datos();
+  if (!d.nombre) { $("nombre").focus(); return; }
+  limpiarNotas();
+  const t = TIPOS[state.tipo];
+  const elegidas = refsDelTipo().filter((r) => state.elegidas.has(r.id));
+  const usar = db ? (elegidas.length ? elegidas : autoElegir(d.nombre)) : [];
+  const textos = db ? await cargarTextos(usar) : [];
+
+  const cabeza = instrucciones(t);
+  const pie = "\n\n" + mensajeUsuario(d);
+  state.promptBase = cabeza + pie;
+  const presupuesto = maxPrompt - bytes(cabeza + pie) - 6000;
+  const porRef = textos.length ? Math.floor(presupuesto / textos.length) : 0;
+  const ctx = textos.map((r) => { const cut = cutToBytes(r.texto, porRef); return { titulo: r.titulo, entidad: r.entidad, texto: cut, recortada: cut.length < r.texto.length || r.recortada }; });
+
+  nota("info", ctx.length ? "Referencias usadas: " + ctx.map((c) => c.titulo).join(" · ") : "Sin referencias: se redacta solo con la estructura normativa.");
+  const largas = ctx.filter((c) => c.recortada).map((c) => c.titulo);
+  if (largas.length) nota("warn", "Por límite de tamaño se usó solo la primera parte de: " + largas.join(" · ") + ".");
+
+  await llamar(`${cabeza}\n\n${bloqueReferencias(ctx)}${pie}`);
+});
+
+$("stop").onclick = () => state.ctl?.abort();
+
+$("aplicar").onclick = async () => {
+  const ajuste = $("ajuste").value.trim();
+  if (!ajuste || !sample || state.generando) return;
+  limpiarNotas();
+  const previo = state.doc;
+  const d = datos();
+  const prompt = `${instrucciones(TIPOS[state.tipo])}\n\n${mensajeUsuario(d)}\n\nEste es el documento generado hasta ahora:\n\n<documento_actual>\n${previo}\n</documento_actual>\n\nAplica los siguientes ajustes solicitados por el área usuaria y devuelve el documento COMPLETO actualizado (no solo las partes cambiadas), con el mismo formato:\n\n${ajuste}`;
+  if (bytes(prompt) > maxPrompt) { nota("err", "El documento es demasiado largo para ajustarlo de una vez. Edítalo manualmente en «Editar texto»."); return; }
+  await llamar(prompt);
+  if (state.doc && state.doc !== previo) $("ajuste").value = "";
+};
+$("ajuste").addEventListener("input", () => { $("aplicar").disabled = !$("ajuste").value.trim(); });
+
+$("continuar").onclick = async () => {
+  if (!sample || state.generando) return;
+  limpiarNotas();
+  const previo = state.doc;
+  const base = state.promptBase || `${instrucciones(TIPOS[state.tipo])}\n\n${mensajeUsuario(datos())}`;
+  const cola = cutToBytes(previo.slice(-6000), 8000);
+  const prompt = `${base}\n\nYa redactaste la primera parte del documento, pero se cortó. Estas son sus últimas líneas:\n\n<final_actual>\n${cola}\n</final_actual>\n\nContinúa el documento EXACTAMENTE desde donde quedó, sin repetir nada de lo anterior ni agregar comentarios, manteniendo el formato y la numeración, hasta terminarlo (incluida la sección "## NOTAS PARA EL ÁREA USUARIA").`;
+  await llamar(prompt, { reemplazar: false, previo: previo.endsWith("\n") ? previo : previo + "\n" });
+};
+
+$("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText(state.doc); $("copy").textContent = "Copiado"; setTimeout(() => ($("copy").textContent = "Copiar"), 1500); }
+  catch { setVista("editar"); $("editor").select(); nota("info", "Selecciona el texto y cópialo con Ctrl+C."); }
+};
+
+/* =====================================================================
+   EXPORTAR A WORD (mismo formato que lib/docx.ts)
+   ===================================================================== */
+const D = window.docx;
+const FUENTE = "Arial";
+const dec = (s) => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+function inl(tokens, st = {}) {
+  const out = [];
+  for (const t of tokens || []) {
+    if (t.type === "strong") out.push(...inl(t.tokens, { ...st, bold: true }));
+    else if (t.type === "em") out.push(...inl(t.tokens, { ...st, italics: true }));
+    else if (t.type === "br") out.push(new D.TextRun({ break: 1 }));
+    else if (t.type === "link") out.push(...inl(t.tokens, st));
+    else if (t.type === "text" && t.tokens?.length) out.push(...inl(t.tokens, st));
+    else if (typeof t.text === "string") out.push(new D.TextRun({ text: dec(t.text), font: FUENTE, ...st }));
+  }
+  return out;
+}
+const B = { style: D.BorderStyle.SINGLE, size: 4, color: "808080" };
+function tabla(t) {
+  const fila = (cs, h) => new D.TableRow({ tableHeader: h, children: cs.map((c) => new D.TableCell({
+    shading: h ? { type: D.ShadingType.CLEAR, fill: "D9E2F3", color: "auto" } : undefined,
+    margins: { top: 60, bottom: 60, left: 100, right: 100 },
+    children: [new D.Paragraph({ alignment: h ? D.AlignmentType.CENTER : D.AlignmentType.LEFT, children: inl(c.tokens, h ? { bold: true } : {}) })],
+  })) });
+  return new D.Table({ width: { size: 100, type: D.WidthType.PERCENTAGE }, borders: { top: B, bottom: B, left: B, right: B, insideHorizontal: B, insideVertical: B }, rows: [fila(t.header, true), ...t.rows.map((r) => fila(r, false))] });
+}
+function bloques(tokens, nivel = 0) {
+  const out = [];
+  for (const t of tokens) {
+    if (t.type === "heading") {
+      const lv = [D.HeadingLevel.TITLE, D.HeadingLevel.HEADING_1, D.HeadingLevel.HEADING_2, D.HeadingLevel.HEADING_3][Math.min(t.depth, 4) - 1];
+      out.push(new D.Paragraph({ heading: lv, alignment: t.depth === 1 ? D.AlignmentType.CENTER : D.AlignmentType.LEFT, spacing: { before: t.depth === 1 ? 0 : 240, after: 120 }, children: inl(t.tokens, { bold: true }) }));
+    } else if (t.type === "paragraph") {
+      out.push(new D.Paragraph({ alignment: D.AlignmentType.JUSTIFIED, spacing: { after: 120 }, children: inl(t.tokens) }));
+    } else if (t.type === "list") {
+      for (const it of t.items) {
+        const [p, ...rest] = it.tokens;
+        const runs = p && (p.type === "text" || p.type === "paragraph") ? inl(p.tokens || [p]) : [];
+        out.push(new D.Paragraph({ alignment: D.AlignmentType.JUSTIFIED, spacing: { after: 60 }, numbering: { reference: t.ordered ? "numerada" : "vinetas", level: Math.min(nivel, 2) }, children: runs }));
+        out.push(...bloques(runs.length ? rest : it.tokens, nivel + 1));
+      }
+    } else if (t.type === "table") {
+      out.push(tabla(t), new D.Paragraph({ spacing: { after: 120 }, children: [] }));
+    } else if (t.type === "blockquote") {
+      out.push(...bloques(t.tokens, nivel));
+    } else if (t.type === "code") {
+      for (const line of t.text.split("\n")) out.push(new D.Paragraph({ children: [new D.TextRun({ text: line, font: "Consolas", size: 20 })] }));
+    } else if (t.type === "hr") {
+      out.push(new D.Paragraph({ border: { bottom: { style: D.BorderStyle.SINGLE, size: 6, color: "999999", space: 1 } }, children: [] }));
+    } else if (t.type !== "space" && typeof t.text === "string" && t.text.trim()) {
+      out.push(new D.Paragraph({ children: [new D.TextRun({ text: dec(t.text), font: FUENTE })] }));
+    }
+  }
+  return out;
+}
+const niveles = (ord) => [0, 1, 2].map((level) => ({
+  level, alignment: D.AlignmentType.LEFT,
+  format: ord ? [D.LevelFormat.DECIMAL, D.LevelFormat.LOWER_LETTER, D.LevelFormat.LOWER_ROMAN][level] : D.LevelFormat.BULLET,
+  text: ord ? `%${level + 1}${level === 1 ? ")" : "."}` : ["•", "–", "▪"][level],
+  style: { paragraph: { indent: { left: 567 * (level + 1), hanging: 360 } } },
+}));
+async function aDocx(md) {
+  const pie = (txt) => new D.TextRun({ text: txt, font: FUENTE, size: 18 });
+  const doc = new D.Document({
+    creator: "Generador TDR·EETT",
+    styles: {
+      default: { document: { run: { font: FUENTE, size: 22 } } },
+      paragraphStyles: [
+        { id: "Title", name: "Title", run: { font: FUENTE, size: 28, bold: true, color: "000000" } },
+        { id: "Heading1", name: "Heading 1", run: { font: FUENTE, size: 24, bold: true, color: "000000" } },
+        { id: "Heading2", name: "Heading 2", run: { font: FUENTE, size: 22, bold: true, color: "000000" } },
+        { id: "Heading3", name: "Heading 3", run: { font: FUENTE, size: 22, bold: true, italics: true, color: "000000" } },
+      ],
+    },
+    numbering: { config: [{ reference: "vinetas", levels: niveles(false) }, { reference: "numerada", levels: niveles(true) }] },
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1418, bottom: 1418, left: 1418, right: 1418 } } },
+      footers: { default: new D.Footer({ children: [new D.Paragraph({ alignment: D.AlignmentType.RIGHT, children: [pie("Página "), new D.TextRun({ children: [D.PageNumber.CURRENT], font: FUENTE, size: 18 }), pie(" de "), new D.TextRun({ children: [D.PageNumber.TOTAL_PAGES], font: FUENTE, size: 18 })] })] }) },
+      children: bloques(mk.lexer(md, { gfm: true })),
+    }],
+  });
+  return D.Packer.toBlob(doc);
+}
+$("word").onclick = async () => {
+  if (!downloads || !state.doc.trim()) return;
+  if (state.vista === "editar") setDoc($("editor").value);
+  $("word").disabled = true;
+  try {
+    const blob = await aDocx(state.doc);
+    const nombre = (`${TIPOS[state.tipo].ref} - ${$("nombre").value.trim() || "documento"}`).replace(/[\\/:*?"<>|\n\r]+/g, " ").slice(0, 150);
+    await downloads.save({ filename: nombre + ".docx", data: blob });
+  } catch (e) {
+    if (e?.code !== "declined") nota("err", e?.code ? `No se pudo descargar el Word (${e.code}).` : "No se pudo generar el archivo Word.");
+  } finally { $("word").disabled = false; }
+};
+
+/* =====================================================================
+   BIBLIOTECA
+   ===================================================================== */
+if (window.pdfjsLib && window.pdfjsWorker) pdfjsLib.GlobalWorkerOptions.workerSrc = ""; // usa el worker cargado en la página
+
+async function extraer(file) {
+  const ext = file.name.toLowerCase().split(".").pop();
+  let txt;
+  if (ext === "pdf") {
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+    const partes = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const c = await (await pdf.getPage(i)).getTextContent();
+      let linea = "", ultY = null;
+      const lineas = [];
+      for (const it of c.items) {
+        const y = it.transform ? Math.round(it.transform[5]) : null;
+        if (ultY !== null && y !== null && Math.abs(y - ultY) > 2) { lineas.push(linea); linea = ""; }
+        linea += it.str; if (it.hasEOL) { lineas.push(linea); linea = ""; }
+        ultY = y;
+      }
+      lineas.push(linea);
+      partes.push(lineas.join("\n"));
+    }
+    txt = partes.join("\n\n");
+  } else if (ext === "docx") {
+    txt = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
+  } else if (ext === "txt" || ext === "md") {
+    txt = await file.text();
+  } else throw new Error("Formato no admitido. Usa PDF, DOCX o TXT (los .doc antiguos guárdalos como .docx).");
+  txt = txt.replace(/\r/g, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  if (txt.length < 200) throw new Error("Casi no tiene texto. Si es un PDF escaneado, pásalo por OCR o súbelo en Word.");
+  return txt;
+}
+
+let pendientes = [];
+function setPendientes(fl) {
+  pendientes = Array.from(fl || []);
+  $("upload").disabled = !pendientes.length || !db;
+  $("upload").textContent = pendientes.length ? `Subir ${pendientes.length} archivo(s)` : "Subir";
+}
+$("files").onchange = (e) => setPendientes(e.target.files);
+const drop = $("drop");
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); setPendientes(e.dataTransfer.files); });
+
+$("upload").onclick = async () => {
+  if (!db || !pendientes.length) return;
+  $("upload").disabled = true;
+  const log = $("uplog"); log.replaceChildren();
+  for (const f of pendientes) {
+    const linea = el("div", { class: "note info" }, `Procesando ${f.name}…`); log.append(linea);
+    try {
+      const completo = await extraer(f);
+      const texto = cutToBytes(completo, 240000);
+      const ref = db.collection("refs").doc();
+      await db.doc("textos/" + ref.id).set({ texto });
+      await ref.set({
+        titulo: f.name.replace(/\.[^.]+$/, ""), nombreArchivo: f.name, tipo: $("u-tipo").value,
+        entidad: $("u-ent").value.trim(), notas: $("u-notas").value.trim(),
+        caracteres: texto.length, recortada: texto.length < completo.length, creado: new Date().toISOString(),
+      });
+      linea.className = "note info"; linea.textContent = `Listo: ${f.name} · ${fmt(texto.length)} caracteres` + (texto.length < completo.length ? " (se guardó la primera parte)" : "");
+    } catch (e) {
+      linea.className = "note err";
+      linea.textContent = `${f.name}: ` + (e?.code === "quota_exceeded" ? "la biblioteca llegó a su límite de espacio; elimina documentos que ya no uses." : e?.message || "no se pudo procesar.");
+    }
+  }
+  $("files").value = ""; setPendientes([]);
+};
+
+const porConfirmar = new Set();
+function renderLib() {
+  const box = $("lib"); box.replaceChildren();
+  $("libcount").textContent = state.refs.length ? String(state.refs.length) : "";
+  $("libtitle").textContent = state.refs.length ? `${state.refs.length} documento(s)` : "Documentos";
+  if (!db) { box.append(el("div", { class: "empty" }, el("strong", {}, "Biblioteca no disponible"), el("span", {}, "Abre esta página en claude.ai con tu cuenta para guardar referencias."))); return; }
+  if (!state.refs.length) {
+    box.append(el("div", { class: "empty" }, el("strong", {}, "Tu biblioteca está vacía"), el("span", {}, "Sube TDR y EETT ya aprobados (por ejemplo, del GORE Cusco). Claude tomará de ellos el formato y el nivel de detalle, no los datos de la entidad.")));
+    return;
+  }
+  const tb = el("tbody");
+  for (const r of state.refs) {
+    const acc = porConfirmar.has(r.id)
+      ? el("span", { class: "confirm" }, "¿Eliminar?",
+          el("button", { class: "btn sm", type: "button", onclick: () => eliminar(r.id) }, "Sí"),
+          el("button", { class: "btn ghost sm", type: "button", onclick: () => { porConfirmar.delete(r.id); renderLib(); } }, "No"))
+      : el("button", { class: "btn ghost sm", type: "button", onclick: () => { porConfirmar.add(r.id); renderLib(); } }, "Eliminar");
+    tb.append(el("tr", {},
+      el("td", {}, el("span", { class: "tag" + (r.tipo === "EETT" ? " eett" : "") }, r.tipo)),
+      el("td", {}, r.titulo, r.notas ? el("div", { class: "hint" }, r.notas) : null),
+      el("td", {}, r.entidad || "—"),
+      el("td", { class: "num" }, (r.caracteres || 0) < 1000 ? `${fmt(r.caracteres || 0)} car.` : `${fmt(Math.round(r.caracteres / 1000))} mil car.`),
+      el("td", {}, acc)));
+  }
+  box.append(el("div", { class: "libtable-wrap" }, el("table", { class: "lib" },
+    el("thead", {}, el("tr", {}, el("th", {}, "Tipo"), el("th", {}, "Título"), el("th", {}, "Entidad"), el("th", {}, "Tamaño"), el("th", {}, ""))), tb)));
+}
+async function eliminar(id) {
+  porConfirmar.delete(id);
+  try { await db.doc("refs/" + id).delete(); await db.doc("textos/" + id).delete(); state.elegidas.delete(id); }
+  catch (e) { nota("err", "No se pudo eliminar (" + (e?.code || "error") + ")."); renderLib(); }
+}
+
+/* =====================================================================
+   ARRANQUE
+   ===================================================================== */
+function banner(texto) { const b = $("banner"); b.replaceChildren(el("div", { class: "note warn" }, texto)); b.hidden = false; }
+
+setDoc(state.doc);
+setVista("previa");
+renderRefPick();
+renderLib();
+$("go").disabled = true;
+
+(async () => {
+  const cl = window.claude;
+  if (!cl?.use) { banner("Esta página funciona dentro de claude.ai: ábrela desde tu cuenta de Claude para generar documentos."); return; }
+  const [s, d, dl] = await Promise.all([cl.use("sample"), cl.use("db"), cl.use("downloads")]);
+  sample = s; db = d; downloads = dl;
+  if (sample) { $("go").disabled = false; try { maxPrompt = (await sample.limits()).maxPromptBytes || maxPrompt; } catch {} }
+  else banner("Claude no está disponible en esta vista. Abre la página en claude.ai con tu cuenta para generar documentos.");
+  if (db) {
+    let cargado = false;
+    const t = setTimeout(() => { if (!cargado) $("lib").replaceChildren(el("div", { class: "empty" }, el("strong", {}, "La biblioteca tarda en cargar"), el("span", {}, "Revisa tu conexión; seguirá intentando."))); }, 10000);
+    db.collection("refs").orderBy("creado", "desc").onSnapshot((snap) => {
+      cargado = true; clearTimeout(t);
+      state.refs = snap.docs.map((x) => ({ id: x.id, ...x.data() }));
+      renderLib(); renderRefPick();
+    }, (e) => { clearTimeout(t); $("lib").replaceChildren(el("div", { class: "note err" }, "No se pudo leer la biblioteca (" + (e?.code || "error") + ").")); });
+  }
+  renderRefPick(); renderLib(); setDoc(state.doc);
+})();
+</script>
