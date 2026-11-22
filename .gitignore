@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+.env
+.env.local
+*.tsbuildinfo
+next-env.d.ts
+# Biblioteca de referencias subidas (pueden contener documentos de la entidad)
+data/*
+!data/.gitkeep
